@@ -61,7 +61,7 @@ class ConpayProxyModel
 	public function isCookieSet()
 	{
 		if (!$this->serviceAction) {
-			return $_COOKIE['conpay-cs'] === $_POST['rand'];
+			return is_numeric($_POST['rand']) && ($_COOKIE['conpay-cs'] === $_POST['rand']);
 		}
 		return true;
 	}
