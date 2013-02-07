@@ -35,7 +35,7 @@ class ConpayProxyModel
 		$this->serviceAction = isset($_POST['conpay-action']) ? $_POST['conpay-action'] : '';
 
 		if (!$this->isSelfRequest() || !$this->isPostRequest() || !$this->isCookieSet()) {
-			throw new Exception('Incorrect request', 403);
+			throw new Exception('Incorrect request');
 		}
 
 		$this->serviceUrl = rtrim($this->serviceUrl.'/'.$this->serviceAction, '/');
@@ -125,7 +125,10 @@ class ConpayProxyModel
 		{
 			$error = curl_error($ch);
 			curl_close($ch);
-			throw new Exception($this->convertCharset($this->conpayCharset, $this->charset, $error), 500);
+			throw new Exception($this->convertCharset($this->conpayCharset, $this->charset, $error));
+		}
+		elseif (!$data) {
+			throw new Exception('Server didn\'t return any data');
 		}
 
 		curl_close($ch);
@@ -166,7 +169,7 @@ class ConpayProxyModel
 	private function getQueryData()
 	{
 		if ($this->merchantId === null) {
-			throw new Exception('MerchantId is not set', 500);
+			throw new Exception('MerchantId is not set');
 		}
 
 		if (empty($_POST['merchant'])) {
