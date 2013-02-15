@@ -69,10 +69,8 @@ class ConpayProxyModel
 	/**
 	 * @return string
 	 */
-	public function sendRequest()
-	{
-		$response = function_exists('curl_init') ? $this->useCurl() : $this->useFileGC();
-		return $this->convertCharset($this->conpayCharset, $this->charset, $response);
+	public function sendRequest() {
+		return function_exists('curl_init') ? $this->useCurl() : $this->useFileGC();
 	}
 
 	/**
@@ -125,7 +123,7 @@ class ConpayProxyModel
 		{
 			$error = curl_error($ch);
 			curl_close($ch);
-			throw new Exception($this->convertCharset($this->conpayCharset, $this->charset, $error));
+			throw new Exception($error);
 		}
 		elseif (!$data) {
 			throw new Exception('Server didn\'t return any data');
@@ -145,9 +143,9 @@ class ConpayProxyModel
 				'method'=>"POST",
 				'content'=>$this->getQueryData(),
 				'header'=>
-					"Content-type: application/x-www-form-urlencoded\r\n".
-						"Referer: {$_SERVER['HTTP_REFERER']}\r\n".
-						"User-Agent: ".$this->getUserAgent()."\r\n"
+				"Content-type: application/x-www-form-urlencoded\r\n".
+					"Referer: {$_SERVER['HTTP_REFERER']}\r\n".
+					"User-Agent: ".$this->getUserAgent()."\r\n"
 			)
 		);
 
@@ -169,8 +167,10 @@ class ConpayProxyModel
 	private function getQueryData()
 	{
 		if ($this->merchantId === null) {
-			throw new Exception('MerchantId is not set');
+			throw new Exception('MerchantId is not set', 500);
 		}
+
+		$_POST = $this->convertCharset($this->charset, $this->conpayCharset, $_POST);
 
 		if (empty($_POST['merchant'])) {
 			$_POST['merchant'] = $this->merchantId;
@@ -180,7 +180,7 @@ class ConpayProxyModel
 			$_POST['checksum'] = $this->createChecksum($_POST);
 		}
 
-		return $this->convertCharset($this->charset, $this->conpayCharset, http_build_query($_POST));
+		return http_build_query($_POST);
 	}
 
 	/**
@@ -222,9 +222,18 @@ class ConpayProxyModel
 	 */
 	private function convertCharset($in, $out, $data)
 	{
-		if ($in !== $out && function_exists('iconv')) {
-			return iconv($in, $out, $data);
+		if ($in !== $out && function_exists('iconv'))
+		{
+			if (is_string($data)) {
+				$data = iconv($in, $out, $data);
+			}
+			else if (is_array($data)) {
+				foreach ($data as &$item) {
+					$item = $this->convertCharset($in, $out, $item);
+				}
+			}
 		}
+
 		return $data;
 	}
 }
