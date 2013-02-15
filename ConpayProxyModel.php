@@ -70,7 +70,8 @@ class ConpayProxyModel
 	 * @return string
 	 */
 	public function sendRequest() {
-		return function_exists('curl_init') ? $this->useCurl() : $this->useFileGC();
+		$result = function_exists('curl_init') ? $this->useCurl() : $this->useFileGC();
+		return $this->convertCharset($this->conpayCharset, $this->charset, $result);
 	}
 
 	/**
@@ -123,7 +124,7 @@ class ConpayProxyModel
 		{
 			$error = curl_error($ch);
 			curl_close($ch);
-			throw new Exception($error);
+			throw new Exception($this->convertCharset($this->conpayCharset, $this->charset, $error));
 		}
 		elseif (!$data) {
 			throw new Exception('Server didn\'t return any data');
@@ -167,7 +168,7 @@ class ConpayProxyModel
 	private function getQueryData()
 	{
 		if ($this->merchantId === null) {
-			throw new Exception('MerchantId is not set', 500);
+			throw new Exception('MerchantId is not set');
 		}
 
 		$_POST = $this->convertCharset($this->charset, $this->conpayCharset, $_POST);
