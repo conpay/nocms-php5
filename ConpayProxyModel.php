@@ -145,8 +145,8 @@ class ConpayProxyModel
 				'content'=>$this->getQueryData(),
 				'header'=>
 				"Content-type: application/x-www-form-urlencoded\r\n".
-					"Referer: {$_SERVER['HTTP_REFERER']}\r\n".
-					"User-Agent: ".$this->getUserAgent()."\r\n"
+				"Referer: {$_SERVER['HTTP_REFERER']}\r\n".
+				"User-Agent: ".$this->getUserAgent()."\r\n"
 			)
 		);
 
