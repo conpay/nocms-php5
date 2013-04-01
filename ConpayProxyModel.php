@@ -181,6 +181,10 @@ class ConpayProxyModel
 			$_POST['checksum'] = $this->createChecksum($_POST);
 		}
 
+		if (empty($_POST['charset'])) {
+			$_POST['charset'] = $this->charset;
+		}
+
 		return http_build_query($_POST);
 	}
 
